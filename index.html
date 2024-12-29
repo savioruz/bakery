@@ -382,22 +382,70 @@
         <form id="registerForm" class="space-y-4 hidden">
           <div class="form-control">
             <label class="label">
-              <span class="label-text">Username</span>
+              <span class="label-text">Full Name</span>
             </label>
-            <input type="text" id="registerUsername" placeholder="Enter username" class="input input-bordered" required />
+            <input type="text" id="registerName" placeholder="Enter your full name" class="input input-bordered" required />
           </div>
+
           <div class="form-control">
             <label class="label">
               <span class="label-text">Email</span>
             </label>
             <input type="email" id="registerEmail" placeholder="email@example.com" class="input input-bordered" required />
           </div>
+
           <div class="form-control">
             <label class="label">
               <span class="label-text">Password</span>
             </label>
             <input type="password" id="registerPassword" placeholder="Enter password" class="input input-bordered" required />
           </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Phone Number</span>
+            </label>
+            <input type="tel" id="registerPhone" placeholder="Enter phone number" class="input input-bordered" required />
+          </div>
+
+          <!-- Address Section -->
+          <div class="divider">Address Information</div>
+          
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Address Line</span>
+            </label>
+            <input type="text" id="registerAddressLine" placeholder="Enter your street address" class="input input-bordered" required />
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">City</span>
+            </label>
+            <input type="text" id="registerCity" placeholder="Enter your city" class="input input-bordered" required />
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">State/Province</span>
+            </label>
+            <input type="text" id="registerState" placeholder="Enter your state/province" class="input input-bordered" required />
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Postal Code</span>
+            </label>
+            <input type="text" id="registerPostalCode" placeholder="Enter postal code" class="input input-bordered" required />
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Country</span>
+            </label>
+            <input type="text" id="registerCountry" placeholder="Enter your country" class="input input-bordered" required />
+          </div>
+
           <div class="form-control mt-6">
             <button type="submit" class="btn btn-primary">Register</button>
           </div>

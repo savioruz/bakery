@@ -331,6 +331,87 @@
       </form>
     </dialog>
 
+    <!-- Address Modal -->
+<dialog id="address-modal" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg mb-4">Shipping Address</h3>
+    <form onsubmit="handleAddressSubmit(event)" class="space-y-4">
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text">Address Line</span>
+        </label>
+        <input 
+          type="text" 
+          id="address_line" 
+          placeholder="Enter your street address" 
+          class="input input-bordered" 
+          required 
+        />
+      </div>
+
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text">City</span>
+        </label>
+        <input 
+          type="text" 
+          id="city" 
+          placeholder="Enter your city" 
+          class="input input-bordered" 
+          required 
+        />
+      </div>
+
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text">State/Province</span>
+        </label>
+        <input 
+          type="text" 
+          id="state" 
+          placeholder="Enter your state or province" 
+          class="input input-bordered" 
+          required 
+        />
+      </div>
+
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text">Postal Code</span>
+        </label>
+        <input 
+          type="text" 
+          id="postal_code" 
+          placeholder="Enter your postal code" 
+          class="input input-bordered" 
+          required 
+        />
+      </div>
+
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text">Country</span>
+        </label>
+        <input 
+          type="text" 
+          id="country" 
+          placeholder="Enter your country" 
+          class="input input-bordered" 
+          required 
+        />
+      </div>
+
+      <div class="modal-action">
+        <button type="submit" class="btn btn-primary">Proceed to Payment</button>
+        <button type="button" class="btn" onclick="document.getElementById('address-modal').close()">Cancel</button>
+      </div>
+    </form>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html> 

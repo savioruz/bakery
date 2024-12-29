@@ -72,28 +72,38 @@ export function handleSignIn(event) {
 export function handleRegister(event) {
   event.preventDefault();
   
-  const username = document.getElementById('registerUsername').value;
-  const email = document.getElementById('registerEmail').value;
-  const password = document.getElementById('registerPassword').value;
+  // Get all form values
+  const userData = {
+    name: document.getElementById('registerName').value,
+    email: document.getElementById('registerEmail').value,
+    password: document.getElementById('registerPassword').value,
+    phone: document.getElementById('registerPhone').value,
+    address: {
+      address_line: document.getElementById('registerAddressLine').value,
+      city: document.getElementById('registerCity').value,
+      state: document.getElementById('registerState').value,
+      postal_code: document.getElementById('registerPostalCode').value,
+      country: document.getElementById('registerCountry').value
+    }
+  };
 
   // Get existing users
   const users = JSON.parse(localStorage.getItem('users') || '[]');
 
   // Check if email already exists
-  if (users.some(user => user.email === email)) {
-    showToast('Email already registered!');
+  if (users.some(user => user.email === userData.email)) {
+    showToast('Email already registered!', 'error');
     return;
   }
 
   // Add new user
-  const newUser = { username, email, password };
-  users.push(newUser);
+  users.push(userData);
   localStorage.setItem('users', JSON.stringify(users));
 
   // Auto login after register
-  handleLogin(newUser);
+  handleLogin(userData);
   document.getElementById('auth-modal').close();
-  showToast('Registration successful!');
+  showToast('Registration successful!', 'success');
 }
 
 // Handle Login (update UI)
@@ -103,7 +113,7 @@ export function handleLogin(user) {
   // Update UI
   document.getElementById('signedOutItems').classList.add('hidden');
   document.getElementById('signedInItems').classList.remove('hidden');
-  document.getElementById('profileName').textContent = user.username;
+  document.getElementById('profileName').textContent = user.name;
 }
 
 // Handle Logout
