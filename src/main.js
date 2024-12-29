@@ -12,6 +12,8 @@ button.addEventListener('click', () => {
   alert('Button clicked!');
 });
 
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
 // Theme toggle functionality
 document.addEventListener('DOMContentLoaded', () => {
   // Get the theme toggle checkbox
@@ -429,6 +431,49 @@ document.body.insertAdjacentHTML('beforeend', `
           </label>
           <input type="password" placeholder="Enter your password" class="input input-bordered" required />
         </div>
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Phone</span>
+          </label>
+          <input type="tel" placeholder="Enter your phone number" class="input input-bordered" required />
+        </div>
+        
+        <!-- Address Fields -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Address Line</span>
+          </label>
+          <input type="text" name="address_line" placeholder="Enter your address" class="input input-bordered" required />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">City</span>
+            </label>
+            <input type="text" name="city" placeholder="City" class="input input-bordered" required />
+          </div>
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">State</span>
+            </label>
+            <input type="text" name="state" placeholder="State" class="input input-bordered" required />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Postal Code</span>
+            </label>
+            <input type="text" name="postal_code" placeholder="Postal Code" class="input input-bordered" required />
+          </div>
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Country</span>
+            </label>
+            <input type="text" name="country" placeholder="Country" class="input input-bordered" required />
+          </div>
+        </div>
+        
         <div class="form-control mt-6">
           <button type="submit" class="btn btn-primary">Register</button>
         </div>
@@ -467,45 +512,112 @@ window.showAuthModal = function(mode) {
 };
 
 // Handle form submissions
-document.getElementById('signinForm').addEventListener('submit', function(e) {
+document.getElementById('signinForm').addEventListener('submit', async function(e) {
   e.preventDefault();
   const email = this.querySelector('input[type="email"]').value;
   const password = this.querySelector('input[type="password"]').value;
 
-  // Simple validation (in real app, you'd verify against a backend)
-  const users = JSON.parse(localStorage.getItem('users') || '[]');
-  const user = users.find(u => u.email === email && u.password === password);
+  try {
+    const response = await fetch(`${baseUrl}/users/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email,
+        password: password
+      })
+    });
 
-  if (user) {
-    handleLogin(user);
+    if (!response.ok) {
+      throw new Error('Login failed');
+    }
+
+    const data = await response.json();
+    
+    // Store tokens in localStorage
+    localStorage.setItem('accessToken', data.data.access_token);
+    localStorage.setItem('refreshToken', data.data.refresh_token);
+
+    // Fetch user details using the access token
+    const userResponse = await fetch(`${baseUrl}/users/me`, {
+      headers: {
+        'Authorization': `Bearer ${data.data.access_token}`
+      }
+    });
+
+    if (!userResponse.ok) {
+      throw new Error('Failed to fetch user details');
+    }
+
+    const userData = await userResponse.json();
+    
+    // Handle successful login
+    handleLogin({
+      username: userData.data.name,
+      email: userData.data.email,
+      id: userData.data.id
+    });
+
     document.getElementById('auth-modal').close();
     showToast('Successfully signed in!');
-  } else {
+  } catch (error) {
+    console.error('Login error:', error);
     showToast('Invalid email or password!');
   }
 });
 
-document.getElementById('registerForm').addEventListener('submit', function(e) {
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
   e.preventDefault();
   const username = this.querySelector('input[type="text"]').value;
   const email = this.querySelector('input[type="email"]').value;
   const password = this.querySelector('input[type="password"]').value;
-
-  // Simple validation (in real app, you'd use a backend)
-  const users = JSON.parse(localStorage.getItem('users') || '[]');
+  const phone = this.querySelector('input[type="tel"]').value; // Add phone input to your form
   
-  if (users.some(u => u.email === email)) {
-    showToast('Email already registered!');
-    return;
+  // Get address fields
+  const addressData = {
+    address_line: this.querySelector('input[name="address_line"]').value,
+    city: this.querySelector('input[name="city"]').value,
+    state: this.querySelector('input[name="state"]').value,
+    postal_code: this.querySelector('input[name="postal_code"]').value,
+    country: this.querySelector('input[name="country"]').value
+  };
+
+  try {
+    const response = await fetch(`${baseUrl}/users`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: username,
+        email: email,
+        password: password,
+        phone: phone,
+        address: addressData
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Registration failed');
+    }
+
+    const data = await response.json();
+    
+    // Handle successful registration
+    handleLogin({
+      username: data.data.name,
+      email: data.data.email,
+      id: data.data.id
+    });
+    
+    document.getElementById('auth-modal').close();
+    showToast('Successfully registered!');
+    
+  } catch (error) {
+    console.error('Registration error:', error);
+    showToast('Registration failed. Please try again.');
   }
-
-  const newUser = { username, email, password };
-  users.push(newUser);
-  localStorage.setItem('users', JSON.stringify(users));
-  
-  handleLogin(newUser);
-  document.getElementById('auth-modal').close();
-  showToast('Successfully registered!');
 });
 
 function handleLogin(user) {
@@ -521,6 +633,8 @@ function handleLogin(user) {
 window.handleLogout = function() {
   currentUser = null;
   localStorage.removeItem('currentUser');
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
   
   // Update UI
   document.getElementById('signedOutItems').classList.remove('hidden');
@@ -642,3 +756,110 @@ document.addEventListener('DOMContentLoaded', () => {
     handleLogin(JSON.parse(savedUser));
   }
 });
+
+// Function to fetch products
+async function fetchProducts(page = 1, limit = 8) {
+  try {
+    const response = await fetch(`${baseUrl}/products?page=${page}&limit=${limit}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch products');
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    showToast('Failed to load products');
+    return null;
+  }
+}
+
+// Function to render products
+function renderProducts(products) {
+  const productsGrid = document.querySelector('.grid.grid-cols-1');
+  productsGrid.innerHTML = ''; // Clear existing products
+
+  products.forEach(product => {
+    const productCard = `
+      <div class="card bg-base-100 shadow-lg">
+        <figure class="px-4 pt-4">
+          <img src="${product.image}" 
+               alt="${product.name}" 
+               class="rounded-xl h-48 w-full object-cover" />
+        </figure>
+        <div class="card-body items-center text-center">
+          <h2 class="card-title">${product.name}</h2>
+          <p class="text-primary font-bold">Rp. ${product.price.toLocaleString()}</p>
+          <div class="rating rating-sm">
+            <input type="radio" name="rating-${product.id}" class="mask mask-star-2 bg-warning" />
+            <input type="radio" name="rating-${product.id}" class="mask mask-star-2 bg-warning" />
+            <input type="radio" name="rating-${product.id}" class="mask mask-star-2 bg-warning" />
+            <input type="radio" name="rating-${product.id}" class="mask mask-star-2 bg-warning" checked />
+            <input type="radio" name="rating-${product.id}" class="mask mask-star-2 bg-warning" />
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-primary" onclick="addToCart('${product.id}')">Add to cart</button>
+          </div>
+        </div>
+      </div>
+    `;
+    productsGrid.insertAdjacentHTML('beforeend', productCard);
+  });
+}
+
+// Function to initialize the menu page
+async function initializeMenu() {
+  const productsData = await fetchProducts();
+  if (productsData && productsData.data) {
+    renderProducts(productsData.data);
+  }
+}
+
+// Search products function
+async function searchProducts(query) {
+  try {
+    const response = await fetch(`${baseUrl}/products/search?name=${query}`);
+    if (!response.ok) {
+      throw new Error('Failed to search products');
+    }
+    const data = await response.json();
+    if (data.data) {
+      renderProducts(data.data);
+    }
+  } catch (error) {
+    console.error('Error searching products:', error);
+    showToast('Failed to search products');
+  }
+}
+
+// Add to cart function (placeholder)
+window.addToCart = function(productId) {
+  // TODO: Implement add to cart functionality
+  console.log('Adding product to cart:', productId);
+  showToast('Added to cart!');
+};
+
+// Initialize the menu when the page loads
+document.addEventListener('DOMContentLoaded', initializeMenu);
+
+// Handle search
+document.getElementById('searchInput').addEventListener('input', debounce(async (e) => {
+  const query = e.target.value;
+  if (query.length >= 3) {
+    await searchProducts(query);
+  } else if (query.length === 0) {
+    initializeMenu();
+  }
+}, 300));
+
+// Debounce helper function
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
