@@ -274,6 +274,38 @@ window.proceedToCheckout = function() {
     return;
   }
 
+  // Show address modal
+  showAddressModal();
+};
+
+// Add address modal functionality
+window.showAddressModal = function() {
+  const modal = document.getElementById('address-modal');
+  modal.showModal();
+};
+
+// Handle address submission and generate receipt
+window.handleAddressSubmit = function(event) {
+  event.preventDefault();
+  
+  // Get address details
+  const addressData = {
+    address_line: document.getElementById('address_line').value,
+    city: document.getElementById('city').value,
+    state: document.getElementById('state').value,
+    postal_code: document.getElementById('postal_code').value,
+    country: document.getElementById('country').value
+  };
+
+  // Close address modal
+  document.getElementById('address-modal').close();
+
+  // Generate receipt with address
+  generateReceipt(addressData);
+};
+
+// Generate receipt with address
+function generateReceipt(addressData) {
   // Calculate total
   const total = cartItems.reduce((sum, item) => sum + item.price, 0);
   const date = new Date().toLocaleDateString('en-ID');
@@ -283,9 +315,6 @@ window.proceedToCheckout = function() {
   // Create PDF
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-
-  // Add logo (you can replace this with your actual logo)
-  // doc.addImage('path_to_your_logo.png', 'PNG', 15, 15, 30, 30);
 
   // Add header
   doc.setFontSize(20);
@@ -301,7 +330,12 @@ window.proceedToCheckout = function() {
     `Date: ${date}`,
     `Time: ${time}`,
     `Customer: ${currentUser.username}`,
-    `Email: ${currentUser.email}`
+    `Email: ${currentUser.email}`,
+    '',
+    'Shipping Address:',
+    `${addressData.address_line}`,
+    `${addressData.city}, ${addressData.state} ${addressData.postal_code}`,
+    `${addressData.country}`
   ], 15, 40);
 
   // Add items table
@@ -310,14 +344,8 @@ window.proceedToCheckout = function() {
     'Rp. ' + item.price.toLocaleString()
   ]);
 
-  // Add total row
-  tableData.push([
-    'Total',
-    'Rp. ' + total.toLocaleString()
-  ]);
-
   doc.autoTable({
-    startY: 70,
+    startY: 90,
     head: [['Item', 'Price']],
     body: tableData,
     theme: 'grid',
@@ -326,28 +354,14 @@ window.proceedToCheckout = function() {
     footStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold' }
   });
 
-  // Add footer
-  const finalY = doc.previousAutoTable.finalY || 150;
-  doc.setFontSize(10);
-  doc.text([
-    'Thank you for shopping at Bake & Bloom!',
-    'Please visit us again.',
-    '',
-    'Contact us:',
-    'Phone: +62 123 456 789',
-    'Email: info@bakeandbloom.com',
-    'Address: Jl. Raya Cake No. 123, Jakarta'
-  ], 15, finalY + 20);
-
   // Save the PDF
   doc.save(`BakeAndBloom_Receipt_${invoiceNumber}.pdf`);
 
   // Clear cart after successful checkout
   cartItems = [];
   updateCartUI();
-  closeCartModal();
   showToast('Thank you for your purchase! Download started.');
-};
+}
 
 // Show toast notification
 function showToast(message) {
